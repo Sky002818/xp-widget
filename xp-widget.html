@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XP Widget</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0e0e0e;
+    --surface:  #161616;
+    --border:   #2a2a2a;
+    --gold:     #c9a227;
+    --gold-dim: #7a5f0f;
+    --text:     #e8e2d4;
+    --muted:    #5a5550;
+    --rank-colors: #CD7F32, #A8A8A8, #c9a227, #5DCAA5, #85B7EB, #9b87f5;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  .widget {
+    width: 100%;
+    max-width: 520px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* 背景グロー */
+  .widget::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(201,162,39,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ヘッダー */
+  .season-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .season-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+
+  .season-theme {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 28px;
+    font-style: italic;
+  }
+
+  /* ランクバッジ */
+  .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(201,162,39,0.08);
+    border: 1px solid rgba(201,162,39,0.2);
+    border-radius: 24px;
+    padding: 6px 14px;
+    margin-bottom: 24px;
+  }
+
+  .rank-icon { font-size: 16px; }
+
+  .rank-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+
+  /* XP数値 */
+  .xp-numbers {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .xp-current {
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--gold);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .xp-current span {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--muted);
+    margin-left: 4px;
+  }
+
+  .xp-target {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* プログレスバー */
+  .bar-track {
+    width: 100%;
+    height: 6px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+    border-radius: 99px;
+    width: 0%;
+    transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+  }
+
+  .bar-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0;
+    width: 12px; height: 100%;
+    background: rgba(255,255,255,0.4);
+    border-radius: 99px;
+    filter: blur(3px);
+  }
+
+  /* マイルストーン */
+  .milestones {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+
+  .milestone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    opacity: 0.35;
+    transition: opacity 0.4s ease;
+  }
+
+  .milestone.reached { opacity: 1; }
+
+  .milestone-icon { font-size: 14px; }
+
+  .milestone-xp {
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* フッター */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+
+  .next-rank {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .next-rank strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .season-badge {
+    font-size: 10px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    letter-spacing: 0.08em;
+  }
+
+  /* ローディング */
+  .loading {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 20px;
+    letter-spacing: 0.1em;
+  }
+
+  .loading::after {
+    content: '';
+    animation: dots 1.2s steps(4, end) infinite;
+  }
+
+  @keyframes dots {
+    0%  { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+  }
+
+  .error {
+    text-align: center;
+    color: #c0392b;
+    font-size: 12px;
+    padding: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="widget" id="widget">
+  <div class="loading">XP を読み込み中</div>
+</div>
+
+<script>
+  // ======================================================
+  // ⚙️  設定（Cloudflare Worker URLをここに入れる）
+  // ======================================================
+  const WORKER_URL = 'https://notion-xp-worker.sorarice12.workers.dev/';
+  // ======================================================
+
+  const RANKS = [
+    { label: 'ブロンズ',   icon: '🥉', min: 0,    max: 199  },
+    { label: 'シルバー',   icon: '🥈', min: 200,  max: 499  },
+    { label: 'ゴールド',   icon: '🥇', min: 500,  max: 899  },
+    { label: 'プラチナ',   icon: '💎', min: 900,  max: 1399 },
+    { label: 'ダイヤ',     icon: '🔷', min: 1400, max: 1999 },
+    { label: 'レジェンド', icon: '👑', min: 2000, max: Infinity },
+  ];
+
+  const MILESTONES = [
+    { icon: '🌱', xp: 200,  label: '200'  },
+    { icon: '⚡', xp: 500,  label: '500'  },
+    { icon: '🔥', xp: 900,  label: '900'  },
+    { icon: '💎', xp: 1400, label: '1400' },
+    { icon: '👑', xp: 2000, label: '2000' },
+  ];
+
+  function getRank(xp) {
+    return RANKS.find(r => xp >= r.min && xp <= r.max) || RANKS[0];
+  }
+
+  function getNextRank(xp) {
+    return RANKS.find(r => r.min > xp) || null;
+  }
+
+  function render(data) {
+    const props = data.properties;
+
+    const name  = props['Name']?.title?.[0]?.plain_text
+               || props['名前']?.title?.[0]?.plain_text
+               || 'シーズン';
+    const theme = props['テーマ']?.rich_text?.[0]?.plain_text || '';
+    const curXP = props['現在の獲得XP']?.number ?? 0;
+    const tarXP = props['目標XP']?.number ?? 2000;
+
+    const rank     = getRank(curXP);
+    const nextRank = getNextRank(curXP);
+    const pct      = Math.min((curXP / tarXP) * 100, 100);
+
+    const widget = document.getElementById('widget');
+    widget.innerHTML = `
+      <div class="season-label">Current Season</div>
+      <div class="season-name">${name}</div>
+      ${theme ? `<div class="season-theme">"${theme}"</div>` : '<div style="margin-bottom:28px"></div>'}
+
+      <div class="rank-badge">
+        <span class="rank-icon">${rank.icon}</span>
+        <span class="rank-text">${rank.label}</span>
+      </div>
+
+      <div class="xp-numbers">
+        <div class="xp-current">
+          ${curXP.toLocaleString()}<span>XP</span>
+        </div>
+        <div class="xp-target">目標 ${tarXP.toLocaleString()} XP</div>
+      </div>
+
+      <div class="bar-track">
+        <div class="bar-fill" id="bar"></div>
+      </div>
+
+      <div class="milestones">
+        ${MILESTONES.map(m => `
+          <div class="milestone ${curXP >= m.xp ? 'reached' : ''}">
+            <span class="milestone-icon">${m.icon}</span>
+            <span class="milestone-xp">${m.label}</span>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="footer">
+        <div class="next-rank">
+          ${nextRank
+            ? `次のランクまで <strong>${(nextRank.min - curXP).toLocaleString()} XP</strong>`
+            : `<strong>👑 最高ランク到達！</strong>`}
+        </div>
+        <div class="season-badge">ACTIVE</div>
+      </div>
+    `;
+
+    // バーアニメーション
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        document.getElementById('bar').style.width = pct + '%';
+      }, 100);
+    });
+  }
+
+  async function fetchXP() {
+    try {
+      const res  = await fetch(WORKER_URL);
+      const json = await res.json();
+      const page = json.results?.[0];
+      if (!page) throw new Error('アクティブなシーズンが見つかりません');
+      render(page);
+    } catch (e) {
+      document.getElementById('widget').innerHTML =
+        `<div class="error">⚠️ ${e.message}<br><small style="color:#555;margin-top:8px;display:block">WORKER_URL を確認してください</small></div>`;
+    }
+  }
+
+  fetchXP();
+</script>
+</body>
+</html>
