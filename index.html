@@ -281,8 +281,7 @@
   function render(data) {
     const props = data.properties;
 
-    const name  = props['Season']?.title?.[0]?.plain_text
-           　　 'シーズン';
+    const name  = props['Season']?.title?.[0]?.plain_text || 'シーズン';
     const theme = props['テーマ']?.rich_text?.[0]?.plain_text || '';
     const curXP = props['現在の獲得XP']?.rollup?.number ?? 0;
     const tarXP = props['目標XP']?.number ?? 2000;
